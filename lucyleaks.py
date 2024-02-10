@@ -1,34 +1,39 @@
 import requests
 import time
 import argparse
+import random
+from colorama import init, Fore, Style
 
-# Função para exibir a ASCII Art colorida
+# Inicializar colorama
+init(autoreset=True)
+
+# Função para gerar uma cor aleatória do arco-íris
+def cor_arco_iris():
+    cores = [Fore.RED, Fore.YELLOW, Fore.GREEN, Fore.CYAN, Fore.BLUE, Fore.MAGENTA]
+    return random.choice(cores)
+
+# Função para exibir a nova ASCII Art colorida com degradê
 def exibir_ascii_art():
-    print('''
-\033[96m██▓     █    ██  ▄████▄  ▓██   ██▓ ██▓    ▓█████  ▄▄▄       ██ ▄█▀  ██████ 
-▓██▒     ██  ▓██▒▒██▀ ▀█   ▒██  ██▒▓██▒    ▓█   ▀ ▒████▄     ██▄█▒ ▒██    ▒ 
-▒██░    ▓██  ▒██░▒▓█    ▄   ▒██ ██░▒██░    ▒███   ▒██  ▀█▄  ▓███▄░ ░ ▓██▄   
-▒██░    ▓▓█  ░██░▒▓▓▄ ▄██▒  ░ ▐██▓░▒██░    ▒▓█  ▄ ░██▄▄▄▄██ ▓██ █▄   ▒   ██▒
-░██████▒▒▒█████▓ ▒ ▓███▀ ░  ░ ██▒▓░░██████▒░▒████▒ ▓█   ▓██▒▒██▒ █▄▒██████▒▒
-░ ▒░▓  ░░▒▓▒ ▒ ▒ ░ ░▒ ▒  ░   ██▒▒▒ ░ ▒░▓  ░░░ ▒░ ░ ▒▒   ▓▒█░▒ ▒▒ ▓▒▒ ▒▓▒ ▒ ░
-░ ░ ▒  ░░░▒░ ░ ░   ░  ▒    ▓██ ░▒░ ░ ░ ▒  ░ ░ ░  ░  ▒   ▒▒ ░░ ░▒ ▒░░ ░▒  ░ ░
-  ░ ░    ░░░ ░ ░ ░         ▒ ▒ ░░    ░ ░      ░     ░   ▒   ░ ░░ ░ ░  ░  ░  
-    ░  ░   ░     ░ ░       ░ ░         ░  ░   ░  ░      ░  ░░  ░         ░  
-                 ░         ░ ░                                              
-\033[0m''')
+    linhas_ascii_art = [
+        "  _                       _               _        ",
+        " | |   _   _  ___ _   _  | |    ___  __ _| | _____ ",
+        " | |  | | | |/ __| | | | | |   / _ \/ _` | |/ / __|",
+        " | |__| |_| | (__| |_| | | |__|  __| (_| |   <\__ \\",
+        " |_____\\__,_|\\___|\\__, | |_____\\___|\\__,_|_|\\_\\___/",
+        "                  |___/                            "
+    ]
+
+    for linha in linhas_ascii_art:
+        cor = cor_arco_iris()
+        print(f"{cor}{linha}{Style.RESET_ALL}")
 
 # Função para exibir os detalhes de um resultado
 def exibir_detalhes_resultado(resultado):
-    exibir_item("Email", resultado.get("email"), "\033[91m")
-    exibir_item("Senha", resultado.get("password"), "\033[92m")
-    exibir_item("Hash", resultado.get("hash"), "\033[93m")
-    exibir_item("sha1", resultado.get("sha1"), "\033[94m")
-    exibir_item("Sources", ", ".join(resultado.get("sources", [])), "\033[95m")
-
-# Função para exibir um item formatado
-def exibir_item(nome, valor, cor):
-    if valor is not None:
-        print(f"{cor}{nome}: \"{valor}\" \033[0m")
+    print(f"{Fore.RED}[*] Email: {resultado.get('email')}")
+    print(f"{Fore.YELLOW}[*] Senha: {resultado.get('password')}")
+    print(f"{Fore.GREEN}[*] Hash: {resultado.get('hash')}")
+    print(f"{Fore.CYAN}[*] sha1: {resultado.get('sha1')}")
+    print(f"{Fore.BLUE}[*] Sources: {', '.join(resultado.get('sources', []))}")
 
 # Função para consultar a API de BreachDirectory
 def consultar_brecha(consulta):
@@ -49,8 +54,8 @@ def consultar_brecha(consulta):
             resultados_totais.extend(json_data.get("result", []))
             exibir_resultados(json_data)
         else:
-            print(f"Erro na requisição. Código de status: {response.status_code}")
-            print("Continuando com o próximo item...")
+            print(f"{Fore.RED}[!] Erro na requisição. Código de status: {response.status_code}")
+            print(f"{Fore.RED}[!] Continuando com o próximo item...")
 
         time.sleep(1)
 
@@ -62,7 +67,7 @@ def exibir_resultados(json_data):
         resultados = json_data["result"]
 
         for resultado in resultados:
-            print("========================")
+            print(f"{Fore.RED}[*] {'=' * 40}")
             exibir_detalhes_resultado(resultado)
 
 # Função para exibir o menu de ajuda
@@ -72,7 +77,8 @@ def exibir_menu_ajuda():
     print("-l, --lista\t\tConsultar uma lista de endereços de e-mail, senhas ou usuários a partir de um arquivo.")
     print("-h, --help\t\tExibir este menu de ajuda.\n")
 
-# Adicionando a exibição da ASCII Art
+# Adicionando os créditos
+print(f"{Fore.RED}Desenvolvido por: David A. Mascaro\n{Style.RESET_ALL}")
 exibir_ascii_art()
 
 # Configurando o parser de argumentos
@@ -88,28 +94,29 @@ elif args.lista:
     with open(args.lista, 'r') as file:
         consulta = [line.strip() for line in file.readlines()]
 else:
-    entrada = input("Escolha uma opção:\n1 - Digitar endereço de e-mail\n2 - Carregar lista de e-mails, senhas ou usuários de um arquivo\n")
+    entrada = input(f"{Fore.RED}Escolha uma opção:\n1 - Digitar endereço de e-mail\n2 - Carregar lista de e-mails, senhas ou usuários de um arquivo\n{Style.RESET_ALL}")
     if entrada == "1":
-        consulta = [input("Digite o endereço de e-mail, senha ou usuário: ")]
+        consulta = [input(f"{Fore.RED}Digite o endereço de e-mail, senha ou usuário: {Style.RESET_ALL}")]
     elif entrada == "2":
-        arquivo = input("Digite o caminho do arquivo contendo a lista: ")
+        arquivo = input(f"{Fore.RED}Digite o caminho do arquivo contendo a lista: {Style.RESET_ALL}")
         with open(arquivo, 'r') as file:
             consulta = [line.strip() for line in file.readlines()]
     else:
-        print("Opção inválida. Saindo.")
+        print(f"{Fore.RED}[!] Opção inválida. Saindo.")
         exit()
 
 # Consultando a API e exibindo resultados
 resultados_totais = consultar_brecha(consulta)
 
 # Perguntando se deseja salvar em um arquivo
-if input("Deseja salvar os resultados em um arquivo? (s/n): ").lower() == 's':
-    arquivo_saida = input("Digite o nome do arquivo de saída: ")
+if input(f"{Fore.RED}[?] Deseja salvar os resultados em um arquivo? (s/n): {Style.RESET_ALL}").lower() == 's':
+    arquivo_saida = input(f"{Fore.RED}[?] Digite o nome do arquivo de saída: {Style.RESET_ALL}")
     with open(arquivo_saida, 'w') as file:
         for resultado in resultados_totais:
-            file.write(f"========================\n")
+            file.write(f"{Fore.RED}[*] {'=' * 40}\n")
             for chave, valor in resultado.items():
-                file.write(f"{chave}: \"{valor}\"\n")
-    print(f"Resultados salvos em {arquivo_saida}")
+                file.write(f"{Fore.RED}[*] {chave}: \"{valor}\"\n")
+    print(f"{Fore.RED}[+] Resultados salvos em {arquivo_saida}")
 
-print("\nDesenvolvido por David A. Mascaro")
+# Adicionando os créditos no final da output
+print(f"{Fore.RED}Desenvolvido por: David A. Mascaro{Style.RESET_ALL}")
